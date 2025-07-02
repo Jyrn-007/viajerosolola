@@ -1,8 +1,9 @@
 import os
+from flask.templating import _render
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
+from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -170,7 +171,7 @@ def delete_producto(current_user, id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_from_directory('.', 'index.html')  # Cambiado para servir el archivo desde la carpeta principal
 
 @app.route('/login')
 def login_page():

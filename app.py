@@ -1,9 +1,8 @@
 import os
-from flask.templating import _render
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response, send_from_directory
+from flask import Flask, request, jsonify, redirect, url_for, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -175,12 +174,12 @@ def index():
 
 @app.route('/login')
 def login_page():
-    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
+    return render_template('login.html')  # Servir el archivo login.html desde la carpeta templates
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    return send_from_directory('.', 'admin.html')  # Servir el archivo admin.html desde la carpeta principal
+    return render_template('admin.html')  # Servir el archivo admin.html desde la carpeta templates
 
 # ──────────────── CONFIG GLOBAL PARA NO CACHEAR RESPUESTAS PROTEGIDAS ────────────────
 @app.after_request

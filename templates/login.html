@@ -58,7 +58,7 @@
       const data = await res.json();
       if (res.ok) {
         // Login exitoso, redirigir a admin
-        location.replace('/admin');
+        location.replace('admin');
       } else {
         message.textContent = data.message || 'Error al iniciar sesión.';
         // Limpiar inputs si quieres

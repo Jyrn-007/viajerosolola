@@ -171,20 +171,16 @@ def delete_producto(current_user, id):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')  # Cambiado para servir el archivo desde la carpeta principal
+    return send_from_directory('.', 'index.html')  # Servir el archivo index.html desde la carpeta principal
 
 @app.route('/login')
 def login_page():
-    return render_template('login.html')
+    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    response = make_response(render_template('admin.html'))
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    return send_from_directory('.', 'admin.html')  # Servir el archivo admin.html desde la carpeta principal
 
 # ──────────────── CONFIG GLOBAL PARA NO CACHEAR RESPUESTAS PROTEGIDAS ────────────────
 @app.after_request

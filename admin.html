@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Tienda</title>
+  <!-- Evitar cache para evitar volver a contenido protegido tras logout -->
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <style>
+    body { font-family: Arial, sans-serif; background:#f0f0f0; }
+    .container { max-width: 900px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; }
+    button { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; }
+    button:hover { background: #218838; }
+    .btn-delete { background: #dc3545; }
+    .btn-delete:hover { background: #c82333; }
+    .btn-edit { background: #ffc107; color: black; }
+    .btn-edit:hover { background: #e0a800; }
+    #message { color: green; min-height: 20px; }
+    a { text-decoration: none; color: #007bff; }
+    a:hover { text-decoration: underline; }
+    .cards { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 30px; }
+    .card { border: 1px solid #ddd; border-radius: 6px; padding: 15px; width: calc(33.333% - 10px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #fff; position: relative; }
+    .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+    .card-title { font-size: 1.1em; font-weight: bold; margin: 10px 0 5px; }
+    .card-desc { font-size: 0.95em; color: #333; }
+    .card-price { color: #28a745; font-weight: bold; margin-top: 8px; }
+    .card-actions { margin-top: 10px; display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Agregar / Editar Producto</h2>
+    <form id="productForm">
+      <input type="hidden" id="id" />
+      <input type="text" id="nombre" placeholder="Nombre" required />
+      <textarea id="descripcion" placeholder="Descripción"></textarea>
+      <input type="number" id="precio" placeholder="Precio" step="0.01" required />
+      <input type="text" id="imagen" placeholder="URL de imagen" />
+      <button type="submit">Guardar</button>
+    </form>
+    <p id="message"></p>
+    <p><a href="/" target="_blank" rel="noopener noreferrer">Ver tienda pública</a></p>
+    <p><a href="#" id="logout">Cerrar sesión</a></p>
+
+    <h3>Productos Agregados</h3>
+    <div class="cards" id="cards-container"></div>
+  </div>
+
+<script>
+const placeholderImage = 'https://via.placeholder.com/300x150?text=Sin+Imagen';
+const contenedor = document.getElementById('cards-container');
+
+// Verifica sesión al inicio sin token en localStorage, usa cookie HTTP-only
+(async function verificarToken() {
+  try {
+    const res = await fetch('/api/validate-token', { credentials: 'include' });
+    if (!res.ok) throw new Error('No autorizado');
+    cargarProductos();
+  } catch {
+    // Redirige al login y reemplaza historial para evitar volver con flecha atrás
+    location.replace('/login');
+  }
+})();
+
+function showMessage(msg, color = 'green') {
+  const msgEl = document.getElementById('message');
+  msgEl.style.color = color;
+  msgEl.innerText = msg;
+  setTimeout(() => msgEl.innerText = '', 3000);
+}
+
+function renderProducto(producto) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="${producto.imagen || placeholderImage}" alt="${producto.nombre}" />
+    <div class="card-title">${producto.nombre}</div>
+    <div class="card-desc">${producto.descripcion}</div>
+    <div class="card-price">Q${parseFloat(producto.precio).toFixed(2)}</div>
+    <div class="card-actions">
+      <button class="btn-edit">Editar</button>
+      <button class="btn-delete">Eliminar</button>
+    </div>
+  `;
+
+  card.querySelector('.btn-edit').addEventListener('click', () => {
+    document.getElementById('id').value = producto.id;
+    document.getElementById('nombre').value = producto.nombre;
+    document.getElementById('descripcion').value = producto.descripcion;
+    document.getElementById('precio').value = producto.precio;
+    document.getElementById('imagen').value = producto.imagen || '';
+  });
+
+  card.querySelector('.btn-delete').addEventListener('click', async () => {
+    if (!confirm(`¿Eliminar "${producto.nombre}"?`)) return;
+    const res = await fetch(`/api/productos/${producto.id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (res.ok) {
+      card.remove();
+      showMessage('Producto eliminado');
+    } else {
+      showMessage('Error al eliminar producto', 'red');
+    }
+  });
+
+  contenedor.appendChild(card);
+}
+
+async function cargarProductos() {
+  const res = await fetch('/api/productos', {
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    showMessage('Error al cargar productos', 'red');
+    return;
+  }
+  const productos = await res.json();
+  contenedor.innerHTML = '';
+  productos.forEach(renderProducto);
+}
+
+document.getElementById('productForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const id = document.getElementById('id').value;
+  const nombre = document.getElementById('nombre').value.trim();
+  const descripcion = document.getElementById('descripcion').value.trim();
+  const precio = parseFloat(document.getElementById('precio').value);
+  const imagen = document.getElementById('imagen').value.trim();
+
+  if (!nombre || isNaN(precio)) {
+    showMessage('Nombre y precio válidos son obligatorios', 'red');
+    return;
+  }
+
+  const metodo = id ? 'PUT' : 'POST';
+  const url = id ? `/api/productos/${id}` : '/api/productos';
+
+  try {
+    const res = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ nombre, descripcion, precio, imagen })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showMessage(data.message || 'Producto guardado');
+      document.getElementById('productForm').reset();
+      document.getElementById('id').value = '';
+      cargarProductos();
+    } else {
+      showMessage(data.message || 'Error al guardar', 'red');
+    }
+  } catch {
+    showMessage('Error en la solicitud', 'red');
+  }
+});
+
+// Logout: Llama a la API para borrar cookie y redirige con replace
+document.getElementById('logout').addEventListener('click', async e => {
+  e.preventDefault();
+  try {
+    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+  } catch {
+    // Ignorar error
+  }
+  location.replace('/login');
+});
+</script>
+</body>
+</html>

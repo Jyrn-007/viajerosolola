@@ -174,7 +174,7 @@ def index():
 
 @app.route('/login')
 def login_page():
-    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
+    return send_from_directory('.', 'login.html') 
 
 @app.route('/admin')
 @token_required

@@ -2,7 +2,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, redirect, url_for, render_template, send_from_directory
+from flask import Flask, request, jsonify, redirect, url_for, make_response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -202,4 +202,3 @@ if __name__ == '__main__':
             db.session.commit()
             print("Usuario admin creado.")
     app.run(debug=True)
-

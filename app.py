@@ -2,7 +2,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, redirect, url_for, make_response, send_from_directory
+from flask import Flask, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -15,7 +15,7 @@ load_dotenv()
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # Configuración CORS para permitir cookies (credentials) desde el frontend (ajusta origen)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+CORS(app, supports_credentials=True, origins=["http://localhost:3000", "https://tu-proyecto.vercel.app"])
 
 # Configuración app
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mi_clave_secreta')
@@ -174,7 +174,7 @@ def index():
 
 @app.route('/login')
 def login_page():
-    return send_from_directory('.', 'login.html') 
+    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
 
 @app.route('/admin')
 @token_required

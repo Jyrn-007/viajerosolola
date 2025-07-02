@@ -174,12 +174,12 @@ def index():
 
 @app.route('/login')
 def login_page():
-    return render_template('login.html')  # Servir el archivo login.html desde la carpeta templates
+    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    return render_template('admin.html')  # Servir el archivo admin.html desde la carpeta templates
+    return send_from_directory('.', 'admin.html')  # Servir el archivo admin.html desde la carpeta principal
 
 # ──────────────── CONFIG GLOBAL PARA NO CACHEAR RESPUESTAS PROTEGIDAS ────────────────
 @app.after_request
@@ -202,3 +202,4 @@ if __name__ == '__main__':
             db.session.commit()
             print("Usuario admin creado.")
     app.run(debug=True)
+

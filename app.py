@@ -2,7 +2,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, redirect, url_for, send_from_directory
+from flask import Flask, request, jsonify, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -12,10 +12,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Crear app
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 # Configuración CORS
-CORS(app, supports_credentials=True, origins=["http://localhost:3000", "https://tu-proyecto.vercel.app"])
+CORS(app, supports_credentials=True, origins=[
+    "http://localhost:3000",
+    "https://tu-proyecto.vercel.app"
+])
 
 # Configuración
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mi_clave_secreta')
@@ -24,9 +27,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar DB
 db = SQLAlchemy(app)
-
-# Obtener ruta absoluta del proyecto
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ──────────────── MODELOS ────────────────
 class Usuario(db.Model):
@@ -169,16 +169,16 @@ def delete_producto(current_user, id):
 # ──────────────── RUTAS HTML ────────────────
 @app.route('/')
 def index():
-    return send_from_directory(ROOT_DIR, 'index.html')
+    return render_template('index.html')
 
 @app.route('/login')
 def login_page():
-    return send_from_directory(ROOT_DIR, 'login.html')
+    return render_template('login.html')
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    return send_from_directory(ROOT_DIR, 'admin.html')
+    return render_template('admin.html')
 
 # ──────────────── NO CACHE PARA RUTAS PROTEGIDAS ────────────────
 @app.after_request

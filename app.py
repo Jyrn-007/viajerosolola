@@ -2,7 +2,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, redirect, url_for, send_from_directory
+from flask import Flask, request, jsonify, redirect, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -12,17 +12,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Crear app
-app = Flask(__name__, template_folder='templates', static_folder='static')
+app = Flask(__name__)
 
-# Configuración CORS para permitir cookies (credentials) desde el frontend (ajusta origen)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000", "https://tu-proyecto.vercel.app"])
+# Configuración CORS para permitir cookies desde el frontend
+CORS(app, supports_credentials=True, origins=[
+    "http://localhost:3000",  # Ajusta según tu frontend
+    "https://tu-proyecto.vercel.app"
+])
 
-# Configuración app
+# Configuración Flask
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mi_clave_secreta')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')  # fallback a SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicializar DB
+# Inicializar base de datos
 db = SQLAlchemy(app)
 
 # ──────────────── MODELOS ────────────────
@@ -54,11 +57,8 @@ def verificar_token_cookie():
         return None
     try:
         datos = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-        user = Usuario.query.get(datos['user_id'])
-        return user
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
+        return Usuario.query.get(datos['user_id'])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
 
 def token_required(f):
@@ -73,7 +73,6 @@ def token_required(f):
     return decorated
 
 # ──────────────── RUTAS API ────────────────
-
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -91,12 +90,11 @@ def login():
 
     response = jsonify({'message': 'Login exitoso'})
     response.set_cookie(
-        'token',
-        token,
+        'token', token,
         httponly=True,
         max_age=86400,
-        samesite='Lax',    # Cambia a 'None' si usas frontend en dominio distinto y usa HTTPS
-        secure=False       # Cambia a True en producción con HTTPS
+        samesite='Lax',  # Usa 'None' si frontend está en dominio distinto (con HTTPS)
+        secure=False     # Cambiar a True en producción con HTTPS
     )
     return response
 
@@ -152,7 +150,6 @@ def update_producto(current_user, id):
     producto.precio = data.get('precio', producto.precio)
     producto.imagen = data.get('imagen', producto.imagen)
     db.session.commit()
-
     return jsonify({'message': 'Producto actualizado correctamente'})
 
 @app.route('/api/productos/<int:id>', methods=['DELETE'])
@@ -170,34 +167,33 @@ def delete_producto(current_user, id):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')  # Servir el archivo index.html desde la carpeta principal
+    return send_file('index.html')
 
 @app.route('/login')
 def login_page():
-    return send_from_directory('.', 'login.html')  # Servir el archivo login.html desde la carpeta principal
+    return send_file('login.html')
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    return send_from_directory('.', 'admin.html')  # Servir el archivo admin.html desde la carpeta principal
+    return send_file('admin.html')
 
-# ──────────────── CONFIG GLOBAL PARA NO CACHEAR RESPUESTAS PROTEGIDAS ────────────────
+# ──────────────── CONTROL DE CACHÉ ────────────────
 @app.after_request
 def no_cache(response):
-    if request.path.startswith('/api/') or request.path == '/admin':
+    if request.path.startswith('/api/') or request.path in ['/admin']:
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
     return response
 
-# ──────────────── INICIO ────────────────
-
+# ──────────────── INICIO APP ────────────────
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         if not Usuario.query.filter_by(username='admin').first():
             admin = Usuario(username='admin')
-            admin.set_password('1234')  # Cambia esta contraseña en producción
+            admin.set_password('1234')  # Cambia esto en producción
             db.session.add(admin)
             db.session.commit()
             print("Usuario admin creado.")

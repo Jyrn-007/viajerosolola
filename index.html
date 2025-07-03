@@ -2,12 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Viajero</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Viajeros</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-   
     <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: #28a745 !important;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://preview.redd.it/hey-ado-fans-does-anyone-know-who-drew-this-i-need-to-know-v0-4fs5wjahbj0c1.jpg?width=640&crop=smart&auto=webp&s=a9c574a1764c63913b4e5cfe7ca8ec5726799465');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            margin-bottom: 50px;
+        }
+        
+        .product-card {
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .login-form {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .admin-panel {
+            margin-top: 30px;
+        }
+   
+
         #productos {
             display: flex;
             flex-wrap: wrap;
@@ -39,8 +88,8 @@
     </style>
 </head>
 <body>
-    <!-- Header superior -->
-    <div class="bg-dark text-light py-1">
+      <!-- Header superior -->
+      <div class="bg-dark text-light py-1">
         <div class="container d-flex justify-content-between small">
             <div>
                 <i class="fa fa-envelope"></i> viajescoutlatam@gmail.com |
@@ -55,61 +104,58 @@
     </div>
 
     <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold text-success" href="#">VIAJERO</a>
+            <a class="navbar-brand" href="#" id="brand">VIAJERO</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Acerca de</a></li>
-                    <li class="nav-item">
-                        <button type="button" onclick="location.href='/login'" class="btn btn-primary">
-                            Iniciar sesión
-                        </button>
-                    </li>
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#" id="homeLink">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="aboutLink">Acerca de</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="productsLink">Tours</a></li>
                 </ul>
+                <div class="d-flex" id="authButtons">
+                    <a href="/login" class="btn btn-success me-2">Iniciar sesión</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Sección Principal -->
-    <div class="container my-5">
-        <div class="row align-items-center">
-            <div class="col-md-6 mb-3">
-                <img src="https://otakusenvenezuela.wordpress.com/wp-content/uploads/2024/11/ado17.jpg" class="img-fluid rounded" alt="Imagen principal">
-            </div>
-            <div class="col-md-6">
-                <small class="text-success">ACERCA DE NOSOTROS</small>
-                <h2 class="fw-bold">Ofrecemos los Mejores Paquetes de Tour Dentro de Tu Presupuesto</h2>
-                <p>Dolores lorem ipsum sit et ipsum. Sed do est sit lorem dolor sit et sed sit dolore sed et lorem.</p>
-                <div class="d-flex">
-                    <img src="https://otakusenvenezuela.wordpress.com/wp-content/uploads/2024/11/ado17.jpg" class="me-2" width="80">
-                    <img src="https://otakusenvenezuela.wordpress.com/wp-content/uploads/2024/11/ado17.jpg" width="80">
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Servicios destacados -->
-    <div class="container my-5">
-        <div class="row text-center justify-content-center">
-            <div class="col-md-4">
-                <div class="p-4 bg-success text-white rounded">
-                    <h5 class="mt-2">Misión</h5>
-                    <p>Somos una empresa dedicada a viajes.</p>
+      <!-- Contenido dinámico -->
+      <div id="appContent">
+        <!-- Home Page -->
+        <div id="homePage">
+            <div class="hero-section text-center">
+                <h1 class="display-4 fw-bold">Explora el mundo con nosotros</h1>
+                <p class="lead">Descubre los mejores destinos al mejor precio</p>
+            </div>
+
+            <div class="container my-5">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <img src="https://preview.redd.it/hey-ado-fans-does-anyone-know-who-drew-this-i-need-to-know-v0-4fs5wjahbj0c1.jpg?width=640&crop=smart&auto=webp&s=a9c574a1764c63913b4e5cfe7ca8ec5726799465" class="img-fluid rounded shadow" alt="Acerca de nuestra agencia">
+                    </div>
+                    <div class="col-md-6">
+                        <h2 class="fw-bold mb-4">Nuestra Visión</h2>
+                        <p class="lead">Ofrecemos los Mejores Paquetes de Tour Dentro de Tu Presupuesto</p>
+                        <p>Somos una agencia comprometida con proporcionar experiencias únicas e inolvidables. Nuestro equipo de expertos en viajes está listo para ayudarte a planificar tus próximas vacaciones soñadas.</p>
+                        <div class="d-flex mt-4">
+                            <div class="me-3 text-center">
+                                <img src="https://preview.redd.it/hey-ado-fans-does-anyone-know-who-drew-this-i-need-to-know-v0-4fs5wjahbj0c1.jpg?width=640&crop=smart&auto=webp&s=a9c574a1764c63913b4e5cfe7ca8ec5726799465" class="rounded-circle mb-2" alt="Garantía de calidad">
+                                <h6>Calidad Garantizada</h6>
+                            </div>
+                            <div class="text-center">
+                                <img src="https://placehold.co/100x100?text=Experiencia" class="rounded-circle mb-2" alt="Años de experiencia">
+                                <h6>15+ Años de Experiencia</h6>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="p-4 bg-success text-white rounded">
-                    <h5 class="mt-2">Visión</h5>
-                    <p>Atención al cliente premium.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+  
 
     <!-- Productos -->
     <div class="container my-5">

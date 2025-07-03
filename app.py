@@ -2,7 +2,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, redirect, url_for, send_file
+from flask import Flask, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
@@ -14,19 +14,19 @@ load_dotenv()
 # Crear app
 app = Flask(__name__)
 
-# Configuración CORS para permitir cookies desde el frontend
-CORS(app, supports_credentials=True, origins=[
-    "http://localhost:3000",  # Ajusta según tu frontend
-    "https://tu-proyecto.vercel.app"
-])
+# Configuración CORS
+CORS(app, supports_credentials=True, origins=["http://localhost:3000", "https://tu-proyecto.vercel.app"])
 
-# Configuración Flask
+# Configuración
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mi_clave_secreta')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicializar base de datos
+# Inicializar DB
 db = SQLAlchemy(app)
+
+# Obtener ruta absoluta del proyecto
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ──────────────── MODELOS ────────────────
 class Usuario(db.Model):
@@ -40,7 +40,6 @@ class Usuario(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
 
 class Producto(db.Model):
     __tablename__ = 'producto'
@@ -57,8 +56,11 @@ def verificar_token_cookie():
         return None
     try:
         datos = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-        return Usuario.query.get(datos['user_id'])
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        user = Usuario.query.get(datos['user_id'])
+        return user
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
         return None
 
 def token_required(f):
@@ -90,11 +92,12 @@ def login():
 
     response = jsonify({'message': 'Login exitoso'})
     response.set_cookie(
-        'token', token,
+        'token',
+        token,
         httponly=True,
         max_age=86400,
-        samesite='Lax',  # Usa 'None' si frontend está en dominio distinto (con HTTPS)
-        secure=False     # Cambiar a True en producción con HTTPS
+        samesite='Lax',
+        secure=False
     )
     return response
 
@@ -164,36 +167,35 @@ def delete_producto(current_user, id):
     return jsonify({'message': 'Producto eliminado correctamente'})
 
 # ──────────────── RUTAS HTML ────────────────
-
 @app.route('/')
 def index():
-    return send_file('index.html')
+    return send_from_directory(ROOT_DIR, 'index.html')
 
 @app.route('/login')
 def login_page():
-    return send_file('login.html')
+    return send_from_directory(ROOT_DIR, 'login.html')
 
 @app.route('/admin')
 @token_required
 def admin_page(current_user):
-    return send_file('admin.html')
+    return send_from_directory(ROOT_DIR, 'admin.html')
 
-# ──────────────── CONTROL DE CACHÉ ────────────────
+# ──────────────── NO CACHE PARA RUTAS PROTEGIDAS ────────────────
 @app.after_request
 def no_cache(response):
-    if request.path.startswith('/api/') or request.path in ['/admin']:
+    if request.path.startswith('/api/') or request.path == '/admin':
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
     return response
 
-# ──────────────── INICIO APP ────────────────
+# ──────────────── INICIO ────────────────
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         if not Usuario.query.filter_by(username='admin').first():
             admin = Usuario(username='admin')
-            admin.set_password('1234')  # Cambia esto en producción
+            admin.set_password('1234')  # Cambia esta contraseña
             db.session.add(admin)
             db.session.commit()
             print("Usuario admin creado.")
